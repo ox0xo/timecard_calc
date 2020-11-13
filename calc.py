@@ -1,61 +1,19 @@
 from libs.classes import Cost, Work, Price, Result
 from functools import reduce
-import sys, copy
+import sys, copy, yaml, os
 
 
-cost_list = [
-    Cost("CMJ", "0284504024", 1350000),
-    Cost("TDSL", "0314496002", 359940),
-    Cost("SLI", "0312296004", 200000),
-    Cost("昭和大学", "0260867059", 100000),
-    Cost("情報発信", "0306311014", 100000),
-    Cost("脆弱性診断", "0300469002", 100000), # 2020-08まで
-    Cost("J-Power", "0315590001", 88740),
-    Cost("支援", "0306311013", 300000),
-    Cost("CMJ臨時", "0315855001", 55000),
-    Cost("コスト計上", "0217180053", 0),
-    ]
+with open(os.path.dirname(__file__) + '/args.yml', encoding="utf8") as file:
+    yml = yaml.safe_load(file)
 
-work_list = [
-    Work("飯渕", 7.5 + 35.5 + 43.5 + 76.5),
-    Work("仁野村", 146.5),
-    Work("三浦", 153.5 + 1.5),
-    Work("越智", 114.25 + 11.5),
-    Work("新山", 40 + 0),
-    Work("山田", 157.5 + 20 - 7.5),
-    ]
+cost_list = [Cost(r["name"], r["id"], r["balance"]) for r in yml["cost"]]
+work_list = [Work(r["name"], r["hour"]) for r in yml["work"]]
+price_list = [Price(r["name"], r["price"]) for r in yml["price"]]
+initial_args = [[r["name"], r["work"], r["hour"]] for r in yml["initial"]]
 
 ignore_list = [ # They can only use the OVER_COST
-    "新山",
+    # "名前",
     ]
-
-initial_args = [
-    ["飯渕", "SLI", 35.5],
-    ["飯渕", "TDSL", 43.5],
-
-    ["新山", "情報発信", 20],
-    ["新山", "脆弱性診断", 20],
-
-    ["山田", "J-Power", 15],
-    ["山田", "CMJ臨時", 7.5 + 1.75],
-
-    ["越智", "昭和大学", 11.5],
-    ["越智", "CMJ", 114.25],
-
-    ["三浦", "昭和大学", 1.5],
-    ["三浦", "コスト計上", 153.5],
-    ]
-
-price_list = [
-    Price("山田", 5916),
-    Price("越智", 5916),
-    Price("飯渕", 4920),
-    Price("新山", 4920),
-    Price("三浦", 4620),
-    Price("仁野村", 4100),
-#    Price("米田", 6988),
-    ]
-
 
 def solv(cost_list, work_list, price_list):
     result = []

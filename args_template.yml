@@ -1,0 +1,34 @@
+cost:
+  - name: "案件名1"
+    id: "000000000000"
+    balance: 200000
+  - name: "案件名2"
+    id: "111111111111"
+    balance: 300000
+  - name: "案件名3"
+    id: "222222222222"
+    balance: 400000
+work:
+  - name: "山田"
+    hour: 157.5
+  - name: "佐藤"
+    hour: 126.5
+  - name: "木村"
+    hour: 111.75
+price:
+  - name: "山田"
+    price: 7200
+  - name: "佐藤"
+    price: 5600
+  - name: "木村"
+    price: 5600
+initial:
+  - name: "山田"
+    work: "案件名1"
+    hour: 7.5
+  - name: "山田"
+    work: "案件名2"
+    hour: 35.5
+  - name: "木村"
+    work: "案件名1"
+    hour: 16
