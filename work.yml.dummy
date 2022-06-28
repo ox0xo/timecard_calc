@@ -1,0 +1,10 @@
+work:
+  - name: "XX1"
+    hour: 165.0
+  - name: "XX2"
+    hour: 165.0
+
+initial:
+  - name: "XX1"
+    work: "XXXXX1"
+    hour: 165

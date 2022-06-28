@@ -1,0 +1,5 @@
+cost:
+  - name: "XX1"
+    price: 9000
+  - name: "XX2"
+    price: 6000

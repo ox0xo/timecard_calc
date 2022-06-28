@@ -1,0 +1,10 @@
+badget:
+  - name: "xxxx1"
+    id: "00000000001"
+    balance: 10000000
+  - name: "xxxxx2"
+    id: "00000000002"
+    balance: 2000000
+  - name: "技術支援"
+    id: "00000000003"
+    balance: 0

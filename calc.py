@@ -3,33 +3,40 @@ from functools import reduce
 import sys, copy, yaml, os
 
 
-with open(os.path.dirname(__file__) + '/args.yml', encoding="utf8") as file:
+with open(os.path.dirname(__file__) + '/badget.yml', encoding="utf8") as file:
     yml = yaml.safe_load(file)
+badget_list = [Cost(r["name"], r["id"], r["balance"]) for r in yml["badget"]]
 
-cost_list = [Cost(r["name"], r["id"], r["balance"]) for r in yml["cost"]]
+with open(os.path.dirname(__file__) + '/cost.yml', encoding="utf8") as file:
+    yml = yaml.safe_load(file)
+cost_list = [Price(r["name"], r["price"]) for r in yml["cost"]]
+
+with open(os.path.dirname(__file__) + '/work.yml', encoding="utf8") as file:
+    yml = yaml.safe_load(file)
 work_list = [Work(r["name"], r["hour"]) for r in yml["work"]]
-price_list = [Price(r["name"], r["price"]) for r in yml["price"]]
 initial_args = [[r["name"], r["work"], r["hour"]] for r in yml["initial"]]
+
+free_badget = "技術支援"
 
 ignore_list = [ # They can only use the OVER_COST
     # "名前",
     ]
 
-def solv(cost_list, work_list, price_list):
+def solv(badget_list, work_list, cost_list):
     result = []
     work_list = list(filter(lambda x: x.hour > 0, work_list))
     if len(work_list) == 0:
         return result
     name_list = list(map(lambda x: x.name, work_list))
-    price_list = list(filter(lambda x:x.name in name_list, price_list))
-    minimum_price = reduce(lambda x,y: x if x.price < y.price else y, price_list)
+    cost_list = list(filter(lambda x:x.name in name_list, cost_list))
+    minimum_price = reduce(lambda x,y: x if x.price < y.price else y, cost_list)
     minimum_work = list(filter(lambda x:x.name == minimum_price.name, work_list))[0]
-    max_cost = reduce(lambda x,y: x if x.balance > y.balance else y, cost_list)
+    max_cost = reduce(lambda x,y: x if x.balance > y.balance else y, badget_list)
 
     work_hour = minimum_work.hour
     if (minimum_price.price / 4 > max_cost.balance) or (minimum_price.name in ignore_list):
         # cost empty exception or ignore member
-        over_cost = list(filter(lambda x:x.name == "コスト計上", cost_list))[0]
+        over_cost = list(filter(lambda x:x.name == free_badget, badget_list))[0]
         result.append(Result(minimum_work.name, over_cost.name, over_cost.cost_id, work_hour, work_hour*minimum_price.price))
     else:
         if minimum_work.hour * minimum_price.price > max_cost.balance:
@@ -39,16 +46,16 @@ def solv(cost_list, work_list, price_list):
         result.append(Result(minimum_work.name, max_cost.name, max_cost.cost_id, work_hour, work_hour*minimum_price.price))
     minimum_work.hour -= work_hour
 
-    result.extend(solv(cost_list, work_list, price_list))
+    result.extend(solv(badget_list, work_list, cost_list))
 
     return result
 
 
 def initialize(member_name, cost_name, hour):
-    price = list(filter(lambda x: x.name == member_name, price_list))[0].price
-    cost = list(filter(lambda x: x.name == cost_name, cost_list))[0]
+    price = list(filter(lambda x: x.name == member_name, cost_list))[0].price
+    cost = list(filter(lambda x: x.name == cost_name, badget_list))[0]
     work = list(filter(lambda x: x.name == member_name, work_list))[0]
-    if (cost_name == "コスト計上") or (cost.balance >= hour*price):
+    if (cost_name == free_badget) or (cost.balance >= hour*price):
         cost.balance -= hour*price
         work.hour -= hour
     else:
@@ -59,7 +66,7 @@ def initialize(member_name, cost_name, hour):
 
 if __name__ == "__main__":
     result = []
-    copy_cost_list = copy.deepcopy(cost_list)
+    copy_badget_list = copy.deepcopy(badget_list)
 
     # Minimum value constraint 
     try:
@@ -70,7 +77,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Calcration    
-    result.extend(solv(cost_list, work_list, price_list))
+    result.extend(solv(badget_list, work_list, cost_list))
 
     # Aggregation
     # Select member_name, cost_name, sum(hour), sum(supply) Group by (member_name, cost_name)
@@ -93,13 +100,13 @@ if __name__ == "__main__":
 
     print("--- result ---")
 
-    total_balance = sum([c.balance for c in copy_cost_list])
-    total_cost = sum([r.supply for r in result if r.cost != "コスト計上"])
-    over_cost = sum([r.supply for r in result if r.cost == "コスト計上"])
+    total_balance = sum([c.balance for c in copy_badget_list])
+    total_cost = sum([r.supply for r in result if r.cost != free_badget])
+    over_cost = sum([r.supply for r in result if r.cost == free_badget])
 
     # Output the value for each the cost_name
     # Select cost_name, sum(supply) Group by cost_name
-    for cost in copy_cost_list:
+    for cost in copy_badget_list:
         estimate = cost.balance
         supply = sum([r.supply for r in result if r.cost == cost.name])
         print("{0}_cost\t {1:09,} - {2:09,} = {3:09,}".format(cost.name, estimate, supply, estimate-supply))
